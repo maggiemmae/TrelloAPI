@@ -1,56 +1,48 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using RestSharp;
-using TrelloAPI.Models;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using TrelloAPI.Command;
+using TrelloAPI.Enum;
+using TrelloAPI.Query;
 
 namespace TrelloAPI.Controllers
 {
-    [Route("api/controller")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CardController : ControllerBase
     {
-        readonly RestClient client;
-        private readonly IConfiguration configuration;
-
-        public CardController(IConfiguration configuration)
+        private readonly ISender mediatr;
+        public CardController(ISender mediatr)
         {
-            this.configuration = configuration;
-
-            var options = new RestClientOptions("https://api.trello.com/1/cards");
-
-            client = new RestClient(options);
+            this.mediatr = mediatr;
         }
 
+        /// <summary>
+        /// Adds a card to list.
+        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> AddCard([FromBody] AddCardModel card, [FromQuery] ListId list)
+        public async Task<IActionResult> AddCard([FromQuery] string name, [FromQuery] ListNames list)
         {
-            var request = new RestRequest();
-
-            ChooseList(list, request);
-
-            request.AddParameter("key", configuration["Trello:ApiKey"])
-                .AddParameter("token", configuration["Trello:Token"])
-                .AddParameter("name", card.Name);
-
-            var response = await client.ExecutePostAsync(request);
-            return Ok(response);
+            var command = new AddCardCommand()
+            {
+                ListName = list,
+                Name = name,
+            };
+            await mediatr.Send(command);
+            return Ok();
         }
 
-        public static void ChooseList(ListId list, RestRequest request)
+        /// <summary>
+        /// Gets cards in list.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetCardsInList([FromQuery] ListNames list)
         {
-            switch (list)
+            var query = new GetCardsInListQuery()
             {
-                case ListId.ToDo:
-                    request.AddParameter("idList", "62ea9d88b86327106422ab16");
-                    break;
-                case ListId.InProcess:
-                    request.AddParameter("idList", "62ea9d88b86327106422ab17");
-                    break;
-                case ListId.Done:
-                    request.AddParameter("idList", "62ea9d88b86327106422ab18");
-                    break;
-                default:
-                    break;
-            }
+                ListName = list,
+            };
+            var response = await mediatr.Send(query);
+            return Ok(response);
         }
     }
 }

@@ -1,6 +1,10 @@
+using MediatR;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TrelloAPI.Constants;
+using TrelloAPI.Models.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +25,17 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Title = "Trello"
     });
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 });
+
+builder.Services.Configure<TrelloOptions>(builder.Configuration.GetSection(ConfigurationConstants.TrelloOptions));
+
+var type = typeof(Program);
+builder.Services.AddMediatR(type);
+builder.Services.AddAutoMapper(type);
 
 var app = builder.Build();
 
