@@ -13,7 +13,7 @@ namespace TrelloAPI.Services
     {
         private readonly TrelloOptions trelloOptions;
         private readonly IMapper mapper;
-        readonly RestClient client;
+        private readonly RestClient client;
 
         public AddCardHandler(IOptions<TrelloOptions> trelloOptions, IMapper mapper)
         {

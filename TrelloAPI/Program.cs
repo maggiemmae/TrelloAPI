@@ -34,7 +34,6 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.Configure<TrelloOptions>(builder.Configuration.GetSection(ConfigurationConstants.TrelloOptions));
 
 var type = typeof(Program);
-
 builder.Services.AddMediatR(type);
 builder.Services.AddAutoMapper(type);
 
