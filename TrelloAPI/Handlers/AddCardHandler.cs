@@ -20,6 +20,10 @@ namespace TrelloAPI.Services
             this.trelloOptions = trelloOptions.Value;
             this.mapper = mapper;
             var options = new RestClientOptions(trelloOptions.Value.BaseUrl);
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             client = new RestClient(options);
         }
 
